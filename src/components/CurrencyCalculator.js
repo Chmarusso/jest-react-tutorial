@@ -14,14 +14,24 @@ export default () => {
   const [currencies, setCurrencies] = React.useState([]);
 
   React.useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchData = async () => {
       const url = "https://api.nbp.pl/api/exchangerates/tables/A?format=json";
-      const response = await fetch(url);
-      const json = await response.json();
-      setCurrencies(json[0].rates);
+      try {
+        const response = await fetch(url, { signal: abortController.signal });
+        const json = await response.json();
+        setCurrencies(json[0].rates);
+      } catch(e) {
+        setCurrencies([]);
+      }
     };
 
     fetchData();
+
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   React.useEffect(() => {
